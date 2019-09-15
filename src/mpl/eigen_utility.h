@@ -32,12 +32,12 @@ struct location_2d
     }
 };
 
-bool operator==(const location_2d& lhs, const location_2d& rhs)
+inline bool operator==(const location_2d& lhs, const location_2d& rhs)
 {
     return (lhs.row == rhs.row) && (lhs.col == rhs.col);
 }
 
-bool operator!=(const location_2d& lhs, const location_2d& rhs)
+inline bool operator!=(const location_2d& lhs, const location_2d& rhs)
 {
     return lhs.row != rhs.row || lhs.col != rhs.col;
 }
@@ -46,7 +46,7 @@ constexpr std::array<std::pair<int, int>, 8> neighbors_2d{{{-1, -1}, {-1, 0},{-1
                                                            {0, -1},            {0, 1},
                                                            {1, -1}, {1, 0}, {1, 1}}};
 
-/// Gives Access to all the Adjacent Nodes of a point
+/// Gives Access to all the Adjacent Nodes of a point (Does Boundary Condition Checking)
 /// @tparam Graph
 /// @tparam Func
 /// @param row
@@ -70,8 +70,18 @@ void for_all_adjacent_nodes(const location_2d& loc, const Graph* graph, Func&& f
     }
 }
 
+/// Get L2 distance
+/// @param start - location_2d*
+/// @param goal - location_2d*
+/// @return l2 distance (double)
+inline double get_distance(const location_2d* start, const location_2d* goal)
+{
+    return sqrt(pow(start->row - goal->row, 2) + pow(start->col - goal->col, 2));
 }
 
+} // namespace mpl
+
+/// hash for location_2d
 namespace std
 {
     template<> struct hash<mpl::location_2d> : boost::hash<mpl::location_2d> {};
