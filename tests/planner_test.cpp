@@ -46,3 +46,11 @@ TEST_F(AstarPlannerFixture, destination_unreachable)
     if(!plan) EXPECT_TRUE(true);
     else EXPECT_TRUE(false);
 }
+
+TEST_F(JPSPlannerFixture, empty_graph_shortest_path)
+{
+    auto plan = empty_planner_.get_plan(mpl::location_2d(0, 0), mpl::location_2d(2, 2));
+    std::cout << plan->size();
+    if(plan) EXPECT_EQ(plan->size(), 4);
+    else EXPECT_TRUE(false);
+}

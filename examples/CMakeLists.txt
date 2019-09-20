@@ -9,3 +9,6 @@ target_link_libraries(astar utility)
 
 add_executable(bfs bfs.cpp)
 target_link_libraries(bfs utility)
+
+add_executable(jps jps.cpp)
+target_link_libraries(jps utility)

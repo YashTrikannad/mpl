@@ -18,6 +18,11 @@ struct location_2d
     int row;
     int col;
 
+    bool is_within_boundary(int max_rows, int max_cols) const
+    {
+        return !(row < 0 || row > max_rows - 1 || col < 0 || col > max_cols - 1);
+    }
+
     friend std::size_t hash_value(location_2d const& location)
     {
         std::size_t seed = 0;
@@ -40,6 +45,21 @@ inline bool operator==(const location_2d& lhs, const location_2d& rhs)
 inline bool operator!=(const location_2d& lhs, const location_2d& rhs)
 {
     return lhs.row != rhs.row || lhs.col != rhs.col;
+}
+
+inline location_2d operator+(location_2d const& location1, location_2d const& location2)
+{
+    return location_2d(location1.row + location2.row, location1.col + location2.col);
+}
+
+inline location_2d operator-(location_2d const& location1, location_2d const& location2)
+{
+    return location_2d(location1.row - location2.row, location1.col - location2.col);
+}
+
+inline bool is_within_boundary(const location_2d& location, const int& rows, const int& cols)
+{
+    return !(location.row < 0 || location.row > rows - 1 || location.col < 0 || location.col > cols - 1);
 }
 
 constexpr std::array<std::pair<int, int>, 8> neighbors_2d{{{-1, -1}, {-1, 0},{-1, 1},

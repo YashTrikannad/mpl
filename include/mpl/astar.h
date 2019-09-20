@@ -13,7 +13,7 @@
 namespace mpl
 {
 
-/// BFS Planner
+/// Astar Planner
 class astar : public planner<astar>
 {
 public:

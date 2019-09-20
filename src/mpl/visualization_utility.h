@@ -31,8 +31,8 @@ void display(const Graph& graph)
 /// @tparam Path
 /// @param graph
 /// @param path
-template <typename Path>
-void display(Eigen::MatrixXd& graph, const Path& path)
+template <typename Graph, typename Path>
+void display(Graph& graph, const Path& path)
 {
     using namespace cv;
     Mat image;
