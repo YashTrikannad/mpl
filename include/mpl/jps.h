@@ -55,9 +55,9 @@ public:
             if(current_location == goal)
             {
                 auto path_node = goal;
+                path.emplace_back(path_node);
                 while (path_node != start)
                 {
-                    path.emplace_back(path_node);
                     assert(parent_from_node.find(path_node) != parent_from_node.end() && "No Parent for Discovered Node! Check Logic");
                     linear_backtrace(path_node, parent_from_node[path_node], &path);
                     path_node = parent_from_node[path_node];
@@ -65,27 +65,31 @@ public:
                 return path;
             }
 
-            int index = 0;
 
             // do a-star using jps functions
             for_all_adjacent_nodes(current_location, &graph_, [&](location_2d&& adjacent_loc){
 
-                const auto successors = get_successors(adjacent_loc,
-                        location_2d( adjacent_loc.row - current_location.row,
-                                     adjacent_loc.col - current_location.col),
-                        start,
-                        goal);
+                const location_2d& step = location_2d(adjacent_loc.row - current_location.row,
+                                                      adjacent_loc.col - current_location.col);
 
-                for(const auto& successor: successors)
+                if(closed_set.find(current_location + step) == closed_set.end())
                 {
-                    if(open_set.find(successor) == open_set.end())
-                    {
-                        parent_from_node[successor] = current_location;
-                        open_set.insert(successor);
-                        open_queue.push(successor);
-                    }
-                }
+                    const auto successors = get_successors(current_location,
+                                                           step,
+                                                           start,
+                                                           goal);
 
+                    for (const auto &successor: successors)
+                    {
+                        if (open_set.find(successor) == open_set.end())
+                        {
+                            parent_from_node[successor] = current_location;
+                            open_set.insert(successor);
+                            open_queue.push(successor);
+                        }
+                    }
+                    closed_set.insert(current_location);
+                }
             });
 
         }
@@ -147,9 +151,9 @@ private:
         }
         else if(step.row !=0 && step.col !=0)
         {
-            if(jump(next_location, location_2d(step.row, 0), start, goal) ||
-            jump(next_location, location_2d(0, step.col), start, goal))
-                return next_location;
+            const auto next_location_1 = jump(next_location, location_2d(step.row, 0), start, goal);
+            const auto next_location_2 = jump(next_location, location_2d(0, step.col), start, goal);
+            if(next_location_1 || next_location_2) return next_location;
         }
         return jump(next_location, step, start, goal);
     }
@@ -172,7 +176,7 @@ private:
             {
                 if(graph_(cur_loc.row - 1, cur_loc.col) == 1) return true;
             }
-            if(is_within_boundary_after_offset(0, 1))
+            if(is_within_boundary_after_offset(1, 0))
             {
                 if(graph_(cur_loc.row + 1, cur_loc.col) == 1) return true;
             }

@@ -16,10 +16,10 @@ protected:
     GraphFixture()
     {
         search_graph_ <<  0, 0, 0, 1 , 0,
-                        0, 0, 1, 1 , 0,
-                        0, 0, 0, 1 , 1,
-                        0, 0, 1, 1 , 0,
-                        1, 0, 0, 0 , 0;
+                0, 0, 1, 1 , 0,
+                0, 0, 0, 1 , 1,
+                0, 0, 1, 1 , 0,
+                1, 0, 0, 0 , 0;
     }
 
     Eigen::Matrix<double , 5, 5> search_graph_;
@@ -28,21 +28,20 @@ protected:
 class AstarPlannerFixture : public GraphFixture
 {
 protected:
-    AstarPlannerFixture() : GraphFixture(),
-                            planner_(this->search_graph_)
-    {}
+    AstarPlannerFixture() : GraphFixture(), planner_(search_graph_)
+    {
+    }
 
     mpl::planner<mpl::astar> planner_;
 };
 
+
 class JPSGraphFixture : public ::testing::Test
 {
 protected:
-    JPSGraphFixture()
+    JPSGraphFixture() :
+            empty_graph_(Eigen::MatrixXd::Zero(10, 10))
     {
-        empty_graph_ <<  0, 0, 0,
-                        0, 0, 0,
-                        0, 0, 0;
         single_obstacle_graph_up_ <<  0, 1, 0,
                                     0, 0, 0,
                                     0, 0, 0;
@@ -69,7 +68,7 @@ protected:
                                                 0, 0, 1;
     }
 
-    Eigen::Matrix<double , 3, 3> empty_graph_;
+    Eigen::MatrixXd empty_graph_;
     Eigen::Matrix<double , 3, 3> single_obstacle_graph_up_;
     Eigen::Matrix<double , 3, 3> single_obstacle_graph_right_;
     Eigen::Matrix<double , 3, 3> single_obstacle_graph_down_;

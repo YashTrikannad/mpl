@@ -47,6 +47,11 @@ inline bool operator!=(const location_2d& lhs, const location_2d& rhs)
     return lhs.row != rhs.row || lhs.col != rhs.col;
 }
 
+inline bool operator==(const std::pair<location_2d, location_2d>& lhs, const std::pair<location_2d, location_2d>& rhs)
+{
+    return (lhs.first == rhs.first) && (lhs.second == rhs.second);
+}
+
 inline location_2d operator+(location_2d const& location1, location_2d const& location2)
 {
     return location_2d(location1.row + location2.row, location1.col + location2.col);

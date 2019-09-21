@@ -19,12 +19,13 @@ class astar : public planner<astar>
 public:
     std::optional<std::vector<location_2d>> get_plan(const location_2d& start, const location_2d& goal) const
     {
-        if(graph_(start.row, start.col) == 1 )
+        if(graph_(start.row, start.col) != 0)
         {
             std::cout << "Cannot Find Path. Start Position is Occupied. \n";
             return std::nullopt;
         }
-        if(graph_(goal.row, goal.col) == 1)
+        const auto x = graph_(goal.row, goal.col);
+        if(graph_(goal.row, goal.col) != 0)
         {
             std::cout << "Cannot Find Path. End Position is Occupied. \n";
             return std::nullopt;

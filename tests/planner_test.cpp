@@ -49,8 +49,39 @@ TEST_F(AstarPlannerFixture, destination_unreachable)
 
 TEST_F(JPSPlannerFixture, empty_graph_shortest_path)
 {
-    auto plan = empty_planner_.get_plan(mpl::location_2d(0, 0), mpl::location_2d(2, 2));
-    std::cout << plan->size();
-    if(plan) EXPECT_EQ(plan->size(), 4);
-    else EXPECT_TRUE(false);
+    auto plan = empty_planner_.get_plan(mpl::location_2d(0, 0), mpl::location_2d(9, 9));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 10);
+
+    plan = empty_planner_.get_plan(mpl::location_2d(9, 9), mpl::location_2d(0, 0));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 10);
+
+    plan = empty_planner_.get_plan(mpl::location_2d(5, 5), mpl::location_2d(3, 9));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 5);
+
+    plan = empty_planner_.get_plan(mpl::location_2d(2, 8), mpl::location_2d(7, 5));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 6);
+
+    plan = empty_planner_.get_plan(mpl::location_2d(1, 1), mpl::location_2d(4, 8));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 8);
+
+    //TODO: Fix this failing test
+    plan = empty_planner_.get_plan(mpl::location_2d(0, 0), mpl::location_2d(1, 1));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 10);
+
+    plan = empty_planner_.get_plan(mpl::location_2d(0, 0), mpl::location_2d(0, 0));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 1);
+
+}
+
+int main(int argc, char **argv)
+{
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
