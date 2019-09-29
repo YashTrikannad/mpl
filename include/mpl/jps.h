@@ -42,6 +42,7 @@ public:
         std::priority_queue<location_2d, std::vector<location_2d>, decltype(less)> open_queue(less);
         std::unordered_set<location_2d> open_set;
 
+        // Mapping from Parent Node to Current Node
         std::unordered_map<location_2d, location_2d> parent_from_node;
 
         open_queue.push(start);
@@ -72,7 +73,7 @@ public:
                 const location_2d& step = location_2d(adjacent_loc.row - current_location.row,
                                                       adjacent_loc.col - current_location.col);
 
-                if(closed_set.find(current_location + step) == closed_set.end())
+                if(closed_set.find(adjacent_loc) == closed_set.end())
                 {
                     const auto successors = get_successors(current_location,
                                                            step,
@@ -81,11 +82,29 @@ public:
 
                     for (const auto &successor: successors)
                     {
+                        const auto jump_transition_cost = get_distance(&successor, &current_location);
+
                         if (open_set.find(successor) == open_set.end())
                         {
+                            g_costs[successor] = g_costs[current_location] + jump_transition_cost;
+
+                            const auto heuristic_cost = get_distance(&successor, &goal);
+
+                            f_costs[successor] = g_costs[successor] + heuristic_cost;
+
                             parent_from_node[successor] = current_location;
                             open_set.insert(successor);
                             open_queue.push(successor);
+                        }
+                        else
+                        {
+                            if(const auto g_cost_adjacent = g_costs[successor] + jump_transition_cost;
+                                    g_costs[successor] > g_cost_adjacent)
+                            {
+                                g_costs[successor] = g_cost_adjacent;
+
+                                parent_from_node[successor] = current_location;
+                            }
                         }
                     }
                     closed_set.insert(current_location);
@@ -119,7 +138,7 @@ private:
         const auto pruned_neighbors = get_pruned_neighbors(current_location, previous_step_direction);
         for(const auto& neighbor: pruned_neighbors)
         {
-            if(const auto successor = jump(neighbor.first, neighbor.second, start, goal))
+            if(const auto successor = jump(current_location, neighbor.second, start, goal))
             {
                 assert(is_within_boundary(*successor, n_rows, n_cols));
                 successors.emplace_back(*successor);

@@ -9,14 +9,12 @@
 
 int main()
 {
-//    auto grid_map = mpl::generate_map(600, 600, 10);
-
-    Eigen::MatrixXd grid_map = Eigen::MatrixXd::Zero(150, 150);
+    auto grid_map = mpl::generate_map(500, 500, 10);
 
     const auto planner = mpl::planner<mpl::jps>(grid_map);
 
     const mpl::location_2d start(0, 0);
-    const mpl::location_2d goal(113, 13);
+    const mpl::location_2d goal(300, 300);
 
     const auto plan = planner.get_plan(start, goal);
 

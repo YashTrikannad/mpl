@@ -72,12 +72,94 @@ TEST_F(JPSPlannerFixture, empty_graph_shortest_path)
     //TODO: Fix this failing test
     plan = empty_planner_.get_plan(mpl::location_2d(0, 0), mpl::location_2d(1, 1));
     if(!plan) EXPECT_TRUE(false);
-    else EXPECT_EQ(plan->size(), 10);
+    else EXPECT_EQ(plan->size(), 2);
 
     plan = empty_planner_.get_plan(mpl::location_2d(0, 0), mpl::location_2d(0, 0));
     if(!plan) EXPECT_TRUE(false);
     else EXPECT_EQ(plan->size(), 1);
 
+}
+
+TEST_F(JPSPlannerFixture, single_cell_obstacle5x5)
+{
+    auto plan = single_obstacle_planner_1.get_plan(mpl::location_2d(0, 0), mpl::location_2d(4, 4));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 5);
+
+    plan = single_obstacle_planner_1.get_plan(mpl::location_2d(4, 4), mpl::location_2d(0, 0));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 5);
+
+    plan = single_obstacle_planner_1.get_plan(mpl::location_2d(1, 1), mpl::location_2d(3, 4));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 4);
+
+    plan = single_obstacle_planner_1.get_plan(mpl::location_2d(2, 4), mpl::location_2d(1, 0));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 5);
+
+    plan = single_obstacle_planner_1.get_plan(mpl::location_2d(1, 4), mpl::location_2d(0, 0));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 5);
+
+    plan = single_obstacle_planner_1.get_plan(mpl::location_2d(0, 0), mpl::location_2d(1, 1));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 2);
+
+    plan = single_obstacle_planner_1.get_plan(mpl::location_2d(0, 0), mpl::location_2d(0, 0));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 1);
+
+    plan = single_obstacle_planner_2.get_plan(mpl::location_2d(0, 0), mpl::location_2d(4, 4));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 5);
+
+    plan = single_obstacle_planner_2.get_plan(mpl::location_2d(4, 4), mpl::location_2d(0, 0));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 5);
+
+    plan = single_obstacle_planner_2.get_plan(mpl::location_2d(1, 1), mpl::location_2d(3, 4));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 4);
+
+    plan = single_obstacle_planner_2.get_plan(mpl::location_2d(2, 4), mpl::location_2d(1, 0));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 5);
+
+    //TODO: Find a solution to get an optimal path in this test case
+    plan = single_obstacle_planner_2.get_plan(mpl::location_2d(1, 4), mpl::location_2d(0, 0));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 5);
+
+    plan = single_obstacle_planner_2.get_plan(mpl::location_2d(0, 0), mpl::location_2d(1, 1));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 2);
+
+    plan = single_obstacle_planner_2.get_plan(mpl::location_2d(0, 0), mpl::location_2d(0, 0));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 1);
+}
+
+TEST_F(JPSPlannerFixture, multiple_obstacles5x5)
+{
+    auto plan = multiple_obstacle_planner_1.get_plan(mpl::location_2d(0, 0), mpl::location_2d(4, 4));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 7);
+
+    plan = multiple_obstacle_planner_1.get_plan(mpl::location_2d(2, 0), mpl::location_2d(2, 4));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 6);
+}
+
+TEST_F(JPSPlannerFixture, multiple_obstacles10x10)
+{
+    auto plan = multiple_obstacle_planner_2.get_plan(mpl::location_2d(0, 0), mpl::location_2d(9, 9));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 12);
+
+    plan = multiple_obstacle_planner_2.get_plan(mpl::location_2d(9, 9), mpl::location_2d(0, 0));
+    if(!plan) EXPECT_TRUE(false);
+    else EXPECT_EQ(plan->size(), 12);
 }
 
 int main(int argc, char **argv)
