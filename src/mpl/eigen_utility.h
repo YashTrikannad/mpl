@@ -67,9 +67,8 @@ inline bool is_within_boundary(const location_2d& location, const int& rows, con
     return !(location.row < 0 || location.row > rows - 1 || location.col < 0 || location.col > cols - 1);
 }
 
-constexpr std::array<std::pair<int, int>, 8> neighbors_2d{{{-1, -1}, {-1, 0},{-1, 1},
-                                                           {0, -1},            {0, 1},
-                                                           {1, -1}, {1, 0}, {1, 1}}};
+constexpr std::array<std::pair<int, int>, 8> neighbors_2d{{ {-1, 0}, {0, -1}, {1, 0}, {0, 1}, {-1, -1},{-1, 1},
+                                                           {1, -1},  {1, 1}}};
 
 /// Gives Access to all the Adjacent Nodes of a point (Does Boundary Condition Checking)
 /// @tparam Graph
@@ -79,15 +78,13 @@ constexpr std::array<std::pair<int, int>, 8> neighbors_2d{{{-1, -1}, {-1, 0},{-1
 /// @param graph
 /// @param func
 template <typename Graph, typename Func>
-void for_all_adjacent_nodes(const location_2d& loc, const Graph* graph, Func&& func)
+void for_all_adjacent_nodes(const location_2d& loc, const Graph& graph, Func&& func)
 {
-    int rows = graph->rows();
-    int cols = graph->cols();
     for(const auto& neighbor: neighbors_2d)
     {
         const auto new_row = loc.row + neighbor.first;
         const auto new_col = loc.col + neighbor.second;
-        if(new_row < 0 || new_row > rows-1 || new_col < 0 || new_col > cols-1)
+        if(new_row < 0 || new_row > graph.rows()-1 || new_col < 0 || new_col > graph.cols()-1 || graph(new_row, new_col) == 1)
         {
             continue;
         }

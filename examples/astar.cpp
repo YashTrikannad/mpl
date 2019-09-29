@@ -9,12 +9,12 @@
 
 int main()
 {
-    auto grid_map = mpl::generate_map(600, 600, 10);
+    auto grid_map = mpl::generate_map(1000, 1000, 10);
 
     const auto planner = mpl::planner<mpl::astar>(grid_map);
 
-    const mpl::location_2d start(0, 0);
-    const mpl::location_2d goal(100, 300);
+    const mpl::location_2d start(200, 200);
+    const mpl::location_2d goal(800, 800);
 
     const auto plan = planner.get_plan(start, goal);
 

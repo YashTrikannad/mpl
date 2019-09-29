@@ -4,10 +4,11 @@
 
 #pragma once
 
-#include <iostream>
-#include <unordered_set>
-#include <queue>
 #include "planner.h"
+
+#include <iostream>
+#include <queue>
+#include <unordered_set>
 
 namespace mpl
 {
@@ -68,7 +69,7 @@ public:
 
 
             // do a-star using jps functions
-            for_all_adjacent_nodes(current_location, &graph_, [&](location_2d&& adjacent_loc){
+            for_all_adjacent_nodes(current_location, graph_, [&](location_2d&& adjacent_loc){
 
                 const location_2d& step = location_2d(adjacent_loc.row - current_location.row,
                                                       adjacent_loc.col - current_location.col);
@@ -82,23 +83,18 @@ public:
 
                     for (const auto &successor: successors)
                     {
-                        const auto jump_transition_cost = get_distance(&successor, &current_location);
-
-                        if (open_set.find(successor) == open_set.end())
+                        if(closed_set.find(successor) == closed_set.end())
                         {
-                            g_costs[successor] = g_costs[current_location] + jump_transition_cost;
+                            if (open_set.find(successor) == open_set.end())
+                            {
+                                g_costs[successor] = g_costs[current_location] + get_distance(&successor, &current_location);
+                                f_costs[successor] = g_costs[successor] + get_distance(&successor, &goal);
 
-                            const auto heuristic_cost = get_distance(&successor, &goal);
-
-                            f_costs[successor] = g_costs[successor] + heuristic_cost;
-
-                            parent_from_node[successor] = current_location;
-                            open_set.insert(successor);
-                            open_queue.push(successor);
-                        }
-                        else
-                        {
-                            if(const auto g_cost_adjacent = g_costs[successor] + jump_transition_cost;
+                                parent_from_node[successor] = current_location;
+                                open_set.insert(successor);
+                                open_queue.push(successor);
+                            }
+                            else if (const auto g_cost_adjacent = g_costs[successor] + get_distance(&successor, &current_location);
                                     g_costs[successor] > g_cost_adjacent)
                             {
                                 g_costs[successor] = g_cost_adjacent;
@@ -113,7 +109,7 @@ public:
 
         }
 
-        std::cout << "Path Not Found! \n";
+        std::cout << "Path does not exist! \n";
         return std::nullopt;
 
     }
@@ -122,12 +118,12 @@ private:
 
     /// Get the JPS successors of a current node in a particular direction (Refer to JPS Paper for more info)
     /// @param current_location
-    /// @param previous_step_direction
+    /// @param step
     /// @param start
     /// @param goal
     /// @return
     std::vector<mpl::location_2d> get_successors(const location_2d& current_location,
-                                                   const location_2d& previous_step_direction,
+                                                   const location_2d& step,
                                                    const location_2d &start,
                                                    const location_2d &goal) const
     {
@@ -135,9 +131,11 @@ private:
 
         std::vector<location_2d> successors;
 
-        const auto pruned_neighbors = get_pruned_neighbors(current_location, previous_step_direction);
+        const auto pruned_neighbors = get_pruned_neighbors(current_location, step);
+
         for(const auto& neighbor: pruned_neighbors)
         {
+            if(graph_(neighbor.first.row, neighbor.first.col) == 1) continue;
             if(const auto successor = jump(current_location, neighbor.second, start, goal))
             {
                 assert(is_within_boundary(*successor, n_rows, n_cols));
@@ -170,9 +168,8 @@ private:
         }
         else if(step.row !=0 && step.col !=0)
         {
-            const auto next_location_1 = jump(next_location, location_2d(step.row, 0), start, goal);
-            const auto next_location_2 = jump(next_location, location_2d(0, step.col), start, goal);
-            if(next_location_1 || next_location_2) return next_location;
+            if(jump(next_location, location_2d(step.row, 0), start, goal) ||
+                    jump(next_location, location_2d(0, step.col), start, goal)) return next_location;
         }
         return jump(next_location, step, start, goal);
     }
@@ -193,11 +190,15 @@ private:
         {
             if(is_within_boundary_after_offset(-1, 0))
             {
-                if(graph_(cur_loc.row - 1, cur_loc.col) == 1) return true;
+                if(graph_(cur_loc.row - 1, cur_loc.col) == 1 &&
+                        is_within_boundary_after_offset(-1, step.col) &&
+                        graph_(cur_loc.row - 1, cur_loc.col+step.col) == 0) return true;
             }
             if(is_within_boundary_after_offset(1, 0))
             {
-                if(graph_(cur_loc.row + 1, cur_loc.col) == 1) return true;
+                if(graph_(cur_loc.row + 1, cur_loc.col) == 1 &&
+                        is_within_boundary_after_offset(1, step.col) &&
+                        graph_(cur_loc.row + 1, cur_loc.col+step.col) == 0) return true;
             }
             return false;
         }
@@ -205,11 +206,15 @@ private:
         {
             if(is_within_boundary_after_offset(0, -1))
             {
-                if(graph_(cur_loc.row, cur_loc.col - 1) == 1) return true;
+                if(graph_(cur_loc.row, cur_loc.col - 1) == 1 &&
+                        is_within_boundary_after_offset(step.row, 1) &&
+                        graph_(cur_loc.row + step.row, cur_loc.col-1) == 0) return true;
             }
             if(is_within_boundary_after_offset(0, 1))
             {
-                if(graph_(cur_loc.row, cur_loc.col + 1) == 1) return true;
+                if(graph_(cur_loc.row, cur_loc.col + 1) == 1 &&
+                        is_within_boundary_after_offset(step.row, 1) &&
+                        graph_(cur_loc.row + step.row, cur_loc.col+1) == 0) return true;
             }
             return false;
         }
@@ -277,7 +282,7 @@ private:
 
         auto add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary = [&](int step_row, int step_col){
             const auto neighbor = location_2d(cur_loc.row + step_row, cur_loc.col + step_col);
-            if(is_within_boundary(neighbor, n_rows, n_cols))
+            if(is_within_boundary(neighbor, n_rows, n_cols) && graph_(neighbor.row, neighbor.col) == 0)
             {
                 pruned_neighbors.emplace_back(std::pair{neighbor, location_2d(step_row, step_col)});
             }
@@ -290,73 +295,49 @@ private:
         if(step.row == 0 && step.col == 1) // Condition for Horizontal Direction 1
         {
             add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(0, 1);
-            if(is_within_boundary_after_offset(-1, 0))
+            if(is_within_boundary_after_offset(-1, 0) && graph_(cur_loc.row - 1, cur_loc.col) == 1)
             {
-                if(graph_(cur_loc.row - 1, cur_loc.col) == 1)
-                {
-                    add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(-1, 1);
-                }
+                add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(-1, 1);
             }
-            if(is_within_boundary_after_offset(1, 0))
+            if(is_within_boundary_after_offset(1, 0) && graph_(cur_loc.row + 1, cur_loc.col) == 1)
             {
-                if(graph_(cur_loc.row + 1, cur_loc.col) == 1)
-                {
-                    add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(1, 1);
-                }
+                add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(1, 1);
             }
         }
         else if(step.row == 0 && step.col == -1) // Condition for Horizontal Direction 2
         {
             add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(0, -1);
-            if(is_within_boundary_after_offset(-1, 0))
+            if(is_within_boundary_after_offset(-1, 0) && graph_(cur_loc.row - 1, cur_loc.col) == 1)
             {
-                if(graph_(cur_loc.row - 1, cur_loc.col) == 1)
-                {
-                    add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(-1, -1);
-                }
+                add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(-1, -1);
             }
-            if(is_within_boundary_after_offset(1, 0))
+            if(is_within_boundary_after_offset(1, 0) && graph_(cur_loc.row + 1, cur_loc.col) == 1)
             {
-                if(graph_(cur_loc.row + 1, cur_loc.col) == 1)
-                {
-                    add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(1, -1);
-                }
+                add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(1, -1);
             }
         }
         else if(step.row == 1 && step.col == 0) // Condition for Vertical Direction 1
         {
             add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(1, 0);
-            if(is_within_boundary_after_offset(0, -1))
+            if(is_within_boundary_after_offset(0, -1) && graph_(cur_loc.row, cur_loc.col - 1) == 1)
             {
-                if(graph_(cur_loc.row, cur_loc.col - 1) == 1)
-                {
-                    add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(1, -1);
-                }
+                add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(1, -1);
             }
-            if(is_within_boundary_after_offset(0, 1))
+            if(is_within_boundary_after_offset(0, 1) && graph_(cur_loc.row, cur_loc.col + 1) == 1)
             {
-                if(graph_(cur_loc.row, cur_loc.col + 1) == 1)
-                {
-                    add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(1, 1);
-                }
+                add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(1, 1);
             }
         }
         else if(step.row == -1 && step.col == 0) // Condition for Vertical Direction 2
         {
             add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(-1, 0);
-            if(is_within_boundary_after_offset(0, -1))
+            if(is_within_boundary_after_offset(0, -1) && graph_(cur_loc.row , cur_loc.col - 1) == 1)
             {
-                if(graph_(cur_loc.row , cur_loc.col - 1) == 1)
-                {
-                    add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(-1, -1);
-                }
+                add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(-1, -1);
             }
-            if(is_within_boundary_after_offset(0, 1))
+            if(is_within_boundary_after_offset(0, 1) && graph_(cur_loc.row , cur_loc.col + 1) == 1)
             {
-                if(graph_(cur_loc.row , cur_loc.col + 1) == 1)
-                {
-                    add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(-1, 1);
-                }
+                add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(-1, 1);
             }
         }
         else if(step.row == 1 && step.col == 1) // Condition for Diagonal 1
@@ -365,19 +346,13 @@ private:
             add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(0, 1);
             add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(1, 1);
 
-            if(is_within_boundary_after_offset(0, -1))
+            if(is_within_boundary_after_offset(0, -1) && graph_(cur_loc.row, cur_loc.col - 1) == 1)
             {
-                if(graph_(cur_loc.row, cur_loc.col - 1) == 1)
-                {
-                    add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(1, -1);
-                }
+                add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(1, -1);
             }
-            if(is_within_boundary_after_offset(-1, 0))
+            if(is_within_boundary_after_offset(-1, 0) && graph_(cur_loc.row - 1, cur_loc.col) == 1)
             {
-                if(graph_(cur_loc.row - 1, cur_loc.col) == 1)
-                {
-                    add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(-1, 1);
-                }
+                add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(-1, 1);
             }
         }
         else if(step.row == -1 && step.col == -1) // Condition for Diagonal 2
@@ -386,19 +361,13 @@ private:
             add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(0, -1);
             add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(-1, -1);
 
-            if(is_within_boundary_after_offset(1, 0))
+            if(is_within_boundary_after_offset(1, 0) && graph_(cur_loc.row + 1, cur_loc.col) == 1)
             {
-                if(graph_(cur_loc.row + 1, cur_loc.col) == 1)
-                {
-                    add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(1, -1);
-                }
+                add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(1, -1);
             }
-            if(is_within_boundary_after_offset(0, 1))
+            if(is_within_boundary_after_offset(0, 1) && graph_(cur_loc.row, cur_loc.col + 1) == 1)
             {
-                if(graph_(cur_loc.row, cur_loc.col + 1) == 1)
-                {
-                    add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(-1, 1);
-                }
+                add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(-1, 1);
             }
         }
         else if(step.row == 1 && step.col == -1) // Condition for Diagonal 3
@@ -407,19 +376,13 @@ private:
             add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(0, -1);
             add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(1, -1);
 
-            if(is_within_boundary_after_offset(-1, 0))
+            if(is_within_boundary_after_offset(-1, 0) && graph_(cur_loc.row - 1, cur_loc.col) == 1)
             {
-                if(graph_(cur_loc.row - 1, cur_loc.col) == 1)
-                {
-                    add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(-1, -1);
-                }
+                add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(-1, -1);
             }
-            if(is_within_boundary_after_offset(0, 1))
+            if(is_within_boundary_after_offset(0, 1) && graph_(cur_loc.row, cur_loc.col + 1) == 1)
             {
-                if(graph_(cur_loc.row, cur_loc.col + 1) == 1)
-                {
-                    add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(1, 1);
-                }
+                add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(1, 1);
             }
         }
         else if(step.row == -1 && step.col == 1) // Condition for Diagonal 4
@@ -428,19 +391,13 @@ private:
             add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(0, 1);
             add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(-1, 1);
 
-            if(is_within_boundary_after_offset(0, -1))
+            if(is_within_boundary_after_offset(0, -1) && graph_(cur_loc.row, cur_loc.col - 1) == 1)
             {
-                if(graph_(cur_loc.row, cur_loc.col - 1) == 1)
-                {
-                    add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(-1, -1);
-                }
+                add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(-1, -1);
             }
-            if(is_within_boundary_after_offset(1, 0))
+            if(is_within_boundary_after_offset(1, 0) && graph_(cur_loc.row + 1, cur_loc.col) == 1)
             {
-                if(graph_(cur_loc.row + 1, cur_loc.col) == 1)
-                {
-                    add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(1, 1);
-                }
+                add_neighbor_direction_pair_to_pruned_neighbors_if_within_boundary(1, 1);
             }
         }
         return pruned_neighbors;

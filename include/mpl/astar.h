@@ -70,7 +70,7 @@ public:
                 return path;
             }
 
-            for_all_adjacent_nodes(current_location, &graph_, [&](location_2d&& adjacent_loc){
+            for_all_adjacent_nodes(current_location, graph_, [&](location_2d&& adjacent_loc){
 
                 if(graph_(adjacent_loc.row, adjacent_loc.col) == 0 &&closed_set.find(adjacent_loc) == closed_set.end())
                 {
