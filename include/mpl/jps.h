@@ -114,6 +114,111 @@ public:
 
     }
 
+    std::optional<std::vector<location_2d>> get_plan_with_visualization(const location_2d &start, const location_2d &goal)
+    {
+        if(graph_(start.row, start.col) == 1 )
+        {
+            std::cout << "Cannot Find Path. Start Position is Occupied. \n";
+            return std::nullopt;
+        }
+        if(graph_(goal.row, goal.col) == 1)
+        {
+            std::cout << "Cannot Find Path. End Position is Occupied. \n";
+            return std::nullopt;
+        }
+
+        std::vector<location_2d> path;
+        std::unordered_set<location_2d> closed_set;
+
+        std::unordered_map<location_2d, double> f_costs;
+        std::unordered_map<location_2d, double> g_costs;
+
+        auto less = [&](const location_2d& left, const location_2d& right) {
+            return f_costs[left] > f_costs[right];
+        };
+
+        std::priority_queue<location_2d, std::vector<location_2d>, decltype(less)> open_queue(less);
+        std::unordered_set<location_2d> open_set;
+
+        // Mapping from Parent Node to Current Node
+        std::unordered_map<location_2d, location_2d> parent_from_node;
+
+        open_queue.push(start);
+        open_set.insert(start);
+
+        while(!open_queue.empty())
+        {
+            const auto current_location = open_queue.top();
+            open_queue.pop();
+
+            if(current_location == goal)
+            {
+                auto path_node = goal;
+                path.emplace_back(path_node);
+                while (path_node != start)
+                {
+                    assert(parent_from_node.find(path_node) != parent_from_node.end() && "No Parent for Discovered Node! Check Logic");
+                    linear_backtrace(path_node, parent_from_node[path_node], &path);
+                    path_node = parent_from_node[path_node];
+                }
+
+                for(const auto & node: path)
+                {
+                    explored_locations_.emplace_back(node, "yellow");
+                }
+                explored_locations_.emplace_back(start, "red");
+                explored_locations_.emplace_back(goal, "green");
+                return path;
+            }
+
+
+            // do a-star using jps functions
+            for_all_adjacent_nodes(current_location, graph_, [&](location_2d&& adjacent_loc){
+
+                const location_2d& step = location_2d(adjacent_loc.row - current_location.row,
+                                                      adjacent_loc.col - current_location.col);
+
+                if(closed_set.find(adjacent_loc) == closed_set.end())
+                {
+                    const auto successors = get_successors(current_location,
+                                                           step,
+                                                           start,
+                                                           goal);
+
+                    for (const auto &successor: successors)
+                    {
+                        if(closed_set.find(successor) == closed_set.end())
+                        {
+                            if (open_set.find(successor) == open_set.end())
+                            {
+                                g_costs[successor] = g_costs[current_location] + get_distance(&successor, &current_location);
+                                f_costs[successor] = g_costs[successor] + get_distance(&successor, &goal);
+
+                                parent_from_node[successor] = current_location;
+                                open_set.insert(successor);
+                                open_queue.push(successor);
+                                explored_locations_.emplace_back(successor, "orange");
+                            }
+                            else if (const auto g_cost_adjacent = g_costs[successor] + get_distance(&successor, &current_location);
+                                    g_costs[successor] > g_cost_adjacent)
+                            {
+                                g_costs[successor] = g_cost_adjacent;
+
+                                parent_from_node[successor] = current_location;
+                            }
+                        }
+                    }
+                    closed_set.insert(current_location);
+                }
+            });
+
+        }
+
+        std::cout << "Path does not exist! \n";
+        return std::nullopt;
+
+    }
+
 private:
 
     /// Get the JPS successors of a current node in a particular direction (Refer to JPS Paper for more info)

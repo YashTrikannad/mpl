@@ -52,6 +52,12 @@ struct viz_location_2d : public location_2d
             b = 0;
             g = 255;
         }
+        else if(color == "orange")
+        {
+            r = 255;
+            b = 0;
+            g = 69;
+        }
         else
         {
             std::__throw_invalid_argument("Color not available: Use red, green, blue, or pass r, g, b values");
@@ -148,7 +154,7 @@ void display(Graph& graph, const std::vector<viz_location_2d>& visualization_inf
                 color.at<cv::Vec3b>(viz_node.row, viz_node.col-1) = cv::Vec3b(viz_node.b, viz_node.g, viz_node.r);
             }
         }
-        if(viz_node.b == 0 && viz_node.g == 0 && viz_node.r == 255)
+        if(viz_node.r == 255)
         {
             if(viz_node.row > 0 && viz_node.row<color.rows && viz_node.col > 0 && viz_node.col<color.cols)
             {
