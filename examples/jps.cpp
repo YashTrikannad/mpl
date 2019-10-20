@@ -11,7 +11,7 @@ int main()
 {
     auto grid_map = mpl::generate_map(1000, 1000, 10);
 
-    const auto planner = mpl::planner<mpl::jps>(grid_map);
+    auto planner = mpl::planner<mpl::jps>(grid_map);
 
     const mpl::location_2d start(200, 200);
     const mpl::location_2d goal(800, 800);
