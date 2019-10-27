@@ -16,7 +16,7 @@ namespace mpl
 
 /// Use this flag to show visualization info
 /// You need to call
-constexpr bool mpl_visualization = true;
+constexpr bool mpl_visualization = false;
 
 /// Planner Interface
 /// @tparam PlannerType

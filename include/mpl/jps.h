@@ -208,7 +208,7 @@ public:
                             }
                         }
                     }
-                    closed_set.insert(current_location);
+                    closed_set.insert(adjacent_loc);
                 }
             });
 
@@ -280,9 +280,9 @@ private:
     }
 
     /// Checks if the current location has forced neighbors (Refer to JPS Paper for more info)
-    /// @param cur_loc
-    /// @param step
-    /// @return
+    /// @param cur_loc - current node location in the graph
+    /// @param step - current step direction
+    /// @return true if the current location has a forced neighbor else false
     bool has_forced_neighbors(const mpl::location_2d& cur_loc, const mpl::location_2d& step) const
     {
         assert(cur_loc.is_within_boundary(n_rows, n_cols));
@@ -325,50 +325,26 @@ private:
         }
         else if(step.row == 1 && step.col == 1) // Condition for Diagonal 1
         {
-            if(is_within_boundary_after_offset(0, -1))
-            {
-                if(graph_(cur_loc.row, cur_loc.col - 1) == 1) return true;
-            }
-            if(is_within_boundary_after_offset(-1, 0))
-            {
-                if(graph_(cur_loc.row - 1, cur_loc.col) == 1) return true;
-            }
+            if(graph_(cur_loc.row, cur_loc.col - 1) == 1) return true;
+            if(graph_(cur_loc.row - 1, cur_loc.col) == 1) return true;
             return false;
         }
         else if(step.row == -1 && step.col == -1) // Condition for Diagonal 2
         {
-            if(is_within_boundary_after_offset(1, 0))
-            {
-                if(graph_(cur_loc.row + 1, cur_loc.col) == 1) return true;
-            }
-            if(is_within_boundary_after_offset(0, 1))
-            {
-                if(graph_(cur_loc.row, cur_loc.col + 1) == 1) return true;
-            }
+            if(graph_(cur_loc.row + 1, cur_loc.col) == 1) return true;
+            if(graph_(cur_loc.row, cur_loc.col + 1) == 1) return true;
             return false;
         }
         else if(step.row == 1 && step.col == -1) // Condition for Diagonal 3
         {
-            if(is_within_boundary_after_offset(-1, 0))
-            {
-                if(graph_(cur_loc.row - 1, cur_loc.col) == 1) return true;
-            }
-            if(is_within_boundary_after_offset(0, 1))
-            {
-                if(graph_(cur_loc.row, cur_loc.col + 1) == 1) return true;
-            }
+            if(graph_(cur_loc.row - 1, cur_loc.col) == 1) return true;
+            if(graph_(cur_loc.row, cur_loc.col + 1) == 1) return true;
             return false;
         }
         else if(step.row == -1 && step.col == 1) // Condition for Diagonal 4
         {
-            if(is_within_boundary_after_offset(0, -1))
-            {
-                if(graph_(cur_loc.row, cur_loc.col - 1) == 1) return true;
-            }
-            if(is_within_boundary_after_offset(1, 0))
-            {
-                if(graph_(cur_loc.row + 1, cur_loc.col) == 1) return true;
-            }
+            if(graph_(cur_loc.row, cur_loc.col - 1) == 1) return true;
+            if(graph_(cur_loc.row + 1, cur_loc.col) == 1) return true;
             return false;
         }
     }

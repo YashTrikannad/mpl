@@ -7,16 +7,16 @@
 #include "mpl/planner.h"
 #include "mpl/visualization_utility.h"
 
-static constexpr bool visualization = true;
+static constexpr bool visualization = false;
 
 int main()
 {
-    auto grid_map = mpl::generate_map(1000, 1000, 10);
+    auto grid_map = mpl::generate_map(4500, 4500, 2);
 
     auto planner = mpl::planner<mpl::astar>(grid_map);
 
-    const mpl::location_2d start(200, 200);
-    const mpl::location_2d goal(800, 800);
+    const mpl::location_2d start(2, 2);
+    const mpl::location_2d goal(4100, 4400);
 
     const auto plan = planner.get_plan(start, goal);
 

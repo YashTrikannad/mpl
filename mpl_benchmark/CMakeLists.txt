@@ -1,0 +1,1 @@
+add_executable(mpl_benchmark mpl_benchmark.cpp)
